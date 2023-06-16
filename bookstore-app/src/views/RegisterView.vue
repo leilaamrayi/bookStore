@@ -26,19 +26,25 @@ It sends a registration request to the server and displays success or error aler
   </div>
 </template>
 
-<script>
-import axios from 'axios';
+<script lang="ts">
+import axios, { AxiosError } from 'axios';
 import { ref } from 'vue';
 
 const API_URL = 'http://localhost:3000';
 
+interface AuthDetails {
+  username: string;
+  password: string;
+  role: string;
+}
+
 export default {
   name: 'RegisterPage',
   setup() {
-    const authDetails = ref({
+    const authDetails = ref<AuthDetails>({
       username: '',
       password: '',
-      role:'',
+      role: '',
     });
 
     const registerAccount = async () => {
@@ -50,15 +56,15 @@ export default {
         }
 
         await axios.post(`${API_URL}/auth/register`, { username, password });
-   
+
         // Registration successful
         alert('Account successfully created');
-        
+
         // Clear form fields
         authDetails.value.username = '';
         authDetails.value.password = '';
-      } catch (error) {
-        if (error.response && error.response.status === 403) {
+      } catch (error: any) {
+        if (axios.isAxiosError(error) && error.response?.status === 403) {
           alert(error.response.data.error);
         } else {
           alert('Registration failed');
@@ -73,6 +79,7 @@ export default {
   },
 };
 </script>
+
 
 
   <style>

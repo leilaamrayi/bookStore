@@ -1,23 +1,21 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import LoginView from '@/views/LoginView.vue';
-import SigninView from '@/views/SigninView.vue';
 import RegisterView from '@/views/RegisterView.vue';
-import LibraryView from '@/views/LibraryView.vue';
 import UserView from '@/views/UserView.vue';
 import GuestView from '@/views/GuestView.vue';
+import AdminView from '@/views/AdminView-user.vue';
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
       path: '/auth',
-      name: 'auth',
-      component: LoginView,
+      name: 'auth',      
       children: [
         {
           path: 'login',
           name: 'login',
-          component: SigninView
+          component: LoginView
         },
         {
           path: 'register',
@@ -28,8 +26,7 @@ const router = createRouter({
     },
     {
       path: '/library',
-      name: 'library',
-      component: LibraryView,
+      name: 'library',      
       children: [
         {
           path: '',
@@ -38,11 +35,17 @@ const router = createRouter({
         },
         {
           path: 'books',
-          name: 'user',
+          name: 'books',
           component: UserView
+        },
+        {
+          path: 'profile',
+          name: 'user',
+          component: AdminView
         }
       ]
     }
+    
   ]
 });
 

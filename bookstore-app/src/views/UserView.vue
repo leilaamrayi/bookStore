@@ -3,15 +3,14 @@ The code implements a book store page where users can search for books, view the
 It fetches book data from a server, allows searching based on the entered term, updates the order quantity,
 and sends order requests to the server. The user can also sign out from the page.
  */
-
-<template>
+ <template>
   <div class="book-store">
     <div class="title-container">
       <div class="title-section">
         <h1 class="title">Book Store</h1>
       </div>
       <div class="user-info">
-        <p>Browsing as user {{ userName }}</p>
+        <p>Browsing as user {{ username }}</p>
         <button class="sign-out-button" @click="signOut">Sign Out</button>
       </div>
     </div>
@@ -48,24 +47,39 @@ and sends order requests to the server. The user can also sign out from the page
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import axios from 'axios';
+import type { AxiosResponse } from 'axios';
+
+
+interface Book {
+  title: string;
+  author: string;
+  quantity: number;
+  orderQuantity: number;
+}
+
+interface OrderData {
+  title: string;
+  quantity: number;
+  username: string;
+}
 
 export default {
-  data() {
+  data(): { username: string; searchTerm: string; books: Book[] } {
     return {
-      userName: '',
+      username: '',
       searchTerm: '',
       books: [],
     };
   },
   computed: {
-    filteredBooks() {
+    filteredBooks(): Book[] {
       if (this.searchTerm.trim() === '') {
         return this.books;
       }
       const search = this.searchTerm.toLowerCase();
-      return this.books.filter((book) => {
+      return this.books.filter((book: Book) => {
         return (
           book.title.toLowerCase().includes(search) ||
           book.author.toLowerCase().includes(search)
@@ -74,78 +88,93 @@ export default {
     },
   },
   methods: {
-    getAvailabilityText(quantity) {
+    getAvailabilityText(quantity: number): string {
       return quantity > 0 ? `${quantity} left` : 'Out of stock';
     },
-    updateOrder(index, action) {
-      const book = this.books[index];
+    updateOrder(index: number, action: string): void {
+      const book: Book = this.books[index];
       if (action === 'increment') {
         book.orderQuantity++;
       } else if (action === 'decrement' && book.orderQuantity > 0) {
         book.orderQuantity--;
       }
     },
-    orderBook(index) {
-      const book = this.books[index];
+    orderBook(index: number): void {
+      const book: Book = this.books[index];
       if (book.orderQuantity === 0) {
         return; // No need to place an order if quantity is 0
       }
-      
-      const orderData = {
+
+      const orderData: OrderData = {
         title: book.title,
         quantity: book.orderQuantity,
+        username: this.username,
       };
 
       const API_URL = 'http://localhost:3000';
       axios
         .post(`${API_URL}/library/user/books`, orderData)
-        .then((response) => {
+        .then((response: AxiosResponse) => {
           console.log('Order placed successfully:', response.data);
           // Update books and perform any other necessary actions
         })
-        .catch((error) => {
-          console.log('Error placing order:', error.response.data);
+        .catch((error: Error) => {
+          console.log('Error placing order:', error);
         });
     },
-    fetchBooks() {
+    fetchBooks(): void {
       const API_URL = 'http://localhost:3000';
       axios
         .get(`${API_URL}/library/books`)
-        .then((response) => {
-          this.books = response.data.books.map((book) => ({
+        .then((response: AxiosResponse) => {
+          this.books = response.data.books.map((book: Book) => ({
             ...book,
             orderQuantity: 0,
           }));
         })
-        .catch((error) => {
+        .catch((error: Error) => {
           console.log('Error fetching books:', error);
         });
     },
-    searchBook() {
+    searchBook(): void {
       // Perform book search logic based on searchTerm
       const API_URL = 'http://localhost:3000';
       axios
         .get(`${API_URL}/library/books/search?q=${this.searchTerm}`)
-        .then((response) => {
-          this.books = response.data.books.map((book) => ({
+        .then((response: AxiosResponse) => {
+          this.books = response.data.books.map((book: Book) => ({
             ...book,
             orderQuantity: 0,
           }));
         })
-        .catch((error) => {
+        .catch((error: Error) => {
           console.log('Error searching book:', error);
         });
     },
-    signOut() {
+    signOut(): void {
       // Sign out logic
       console.log('Signing out...');
     },
+    fetchUsername(): void {
+      const API_URL = 'http://localhost:3000';
+      axios
+        .get(`${API_URL}/auth/login`)
+        .then((response: AxiosResponse) => {
+          this.username = response.data.username;
+        })
+        .catch((error: Error) => {
+          console.log('Error fetching username:', error);
+        });
+    },
   },
-  mounted() {
+  mounted(): void {
     this.fetchBooks();
+    this.fetchUsername();
   },
 };
 </script>
+
+
 
 
 <style>

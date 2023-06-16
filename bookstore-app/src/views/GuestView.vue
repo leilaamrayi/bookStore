@@ -3,7 +3,6 @@ The code represents a guest view of a book store where users can search for book
 sends a request to the server to fetch books matching the search term, and displays the search results in a table. 
 Users can also sign in to access additional features.
 */
-
 <template>
   <div class="guest-view">
     <div class="title-container">
@@ -12,7 +11,7 @@ Users can also sign in to access additional features.
       </div>
       <div class="user-info">
         <p>Browsing as Guest</p>
-        <button class="sign-out-button" @click="signIn">Sign in</button>
+        <button class="sign-out-button" @click="goToSignIn">Sign in</button>
       </div>
     </div>
     <div class="search-container">
@@ -44,41 +43,60 @@ Users can also sign in to access additional features.
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import axios from 'axios';
+import { ref } from 'vue';
+import { useRouter } from 'vue-router';
 import BookList from '@/components/BookList.vue';
+
+const API_URL = 'http://localhost:3000';
+
+interface Book {
+  title: string;
+  author: string;
+  quantity: number;
+  version: number;
+}
 
 export default {
   components: {
     BookList,
   },
-  data() {
-    return {
-      searchTerm: '',
-      books: [],
-      searchResults: [],
-      searchResultsVisible: false,
-    };
-  },
-  methods: {
-    searchBook() {
-      const API_URL = 'http://localhost:3000';
+  setup() {
+    const searchTerm = ref('');
+    const books = ref<Book[]>([]);
+    const searchResults = ref<Book[]>([]);
+    const searchResultsVisible = ref(false);
+    const router = useRouter();
+
+    const searchBook = () => {
       axios
-        .get(`${API_URL}/library/books/search?q=${this.searchTerm}`)
+        .get(`${API_URL}/library/books/search?q=${searchTerm.value}`)
         .then((response) => {
-          this.searchResults = response.data.books;          
-          this.searchResultsVisible = true;
+          searchResults.value = response.data.books;
+          searchResultsVisible.value = true;
         })
         .catch((error) => {
           console.log('Error searching book:', error);
         });
-    },
-    signIn() {
-      // Sign in logic
-    },
+    };
+
+    const goToSignIn = () => {
+      router.push('/auth/login'); // Navigate to SignInView
+    };
+
+    return {
+      searchTerm,
+      books,
+      searchResults,
+      searchResultsVisible,
+      searchBook,
+      goToSignIn,
+    };
   },
 };
 </script>
+
 
   <style>
   .book-store {

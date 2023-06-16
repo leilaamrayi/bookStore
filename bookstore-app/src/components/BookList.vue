@@ -17,44 +17,56 @@
           <td>{{ book.title }}</td>
           <td>{{ book.author }}</td>
           <td>{{ book.quantity }}</td>
-          <td>{{ version}}</td>
+          <td>{{ book.version }}</td>
         </tr>
       </tbody>
     </table>
   </div>
 </template>
 
-<script>
+<script lang="ts">
 import axios from 'axios';
+import { ref, onMounted } from 'vue';
+
+const API_URL = 'http://localhost:3000';
+
+interface Book {
+  title: string;
+  author: string;
+  quantity: number;
+  version: number;
+}
 
 export default {
   data() {
     return {
-      books: [],
-      version: [],
+      books: [] as Book[],
     };
   },
-  mounted() {
-    this.fetchBooks();
-  },
-  methods: {
-    fetchBooks() {
-      const API_URL = 'http://localhost:3000';
+  setup() {
+    const books = ref<Book[]>([]);
+
+    const fetchBooks = () => {
       axios
         .get(`${API_URL}/library/books`)
         .then((response) => {
-          this.books = response.data.books;
-          this.version=response.data.version;
-          console.log('Received books:', this.books);
-          console.log('Version Number:', versionNumber);
+          books.value = response.data.books;
+          console.log('Received books:', books.value);
         })
         .catch((error) => {
           console.log('Error fetching books:', error);
         });
-    },
+    };
+
+    onMounted(fetchBooks);
+
+    return {
+      books,
+    };
   },
 };
 </script>
+
 
 
 <style>
