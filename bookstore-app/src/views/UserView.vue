@@ -4,16 +4,7 @@ It fetches book data from a server, allows searching based on the entered term, 
 and sends order requests to the server. The user can also sign out from the page.
  */
  <template>
-  <div class="book-store">
-    <div class="title-container">
-      <div class="title-section">
-        <h1 class="title">Book Store</h1>
-      </div>
-      <div class="user-info">
-        <p>Browsing as user {{ username }}</p>
-        <button class="sign-out-button" @click="signOut">Sign Out</button>
-      </div>
-    </div>
+    <TitlePage></TitlePage>
     <div class="search-container">
       <input type="text" v-model="searchTerm" placeholder="Search Book" @keyup.enter="searchBook" />
     </div>
@@ -44,12 +35,13 @@ and sends order requests to the server. The user can also sign out from the page
         </tr>
       </tbody>
     </table>
-  </div>
+ 
 </template>
 
 <script lang="ts">
 import axios from 'axios';
 import type { AxiosResponse } from 'axios';
+import TitlePage from '../components/TitlePage.vue';
 
 
 interface Book {
@@ -62,17 +54,20 @@ interface Book {
 interface OrderData {
   title: string;
   quantity: number;
-  username: string;
+  
 }
 
 export default {
-  data(): { username: string; searchTerm: string; books: Book[] } {
+  data(): { searchTerm: string; books: Book[] } {
     return {
-      username: '',
       searchTerm: '',
       books: [],
     };
   },
+  components: {
+    TitlePage,
+  },
+
   computed: {
     filteredBooks(): Book[] {
       if (this.searchTerm.trim() === '') {
@@ -108,7 +103,6 @@ export default {
       const orderData: OrderData = {
         title: book.title,
         quantity: book.orderQuantity,
-        username: this.username,
       };
 
       const API_URL = 'http://localhost:3000';
@@ -151,51 +145,19 @@ export default {
           console.log('Error searching book:', error);
         });
     },
-    signOut(): void {
-      // Sign out logic
+    signOut(): void {      
+      this.$router.push('/login');
       console.log('Signing out...');
-    },
-    fetchUsername(): void {
-      const API_URL = 'http://localhost:3000';
-      axios
-        .get(`${API_URL}/auth/login`)
-        .then((response: AxiosResponse) => {
-          this.username = response.data.username;
-        })
-        .catch((error: Error) => {
-          console.log('Error fetching username:', error);
-        });
     },
   },
   mounted(): void {
     this.fetchBooks();
-    this.fetchUsername();
   },
 };
 </script>
 
 
-
-
 <style>
-.book-store {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.title-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  width: 100%;
-  margin-bottom: 20px;
-}
-
-.title-section {
-  text-align: center;
-  flex-grow: 1;
-}
 
 .user-info {
   display: flex;

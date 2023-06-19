@@ -6,8 +6,7 @@ It sends a registration request to the server and displays success or error aler
 <template>
   <div class="login-page">
     <div class="login-container">
-      <h2 class="login-title">Register</h2>
-      
+      <h2 class="login-title">Register</h2>      
       <div class="form-group">
         <label for="username">Username</label>
         <input type="text" id="username" v-model="authDetails.username" placeholder="Enter your username" />
@@ -15,12 +14,10 @@ It sends a registration request to the server and displays success or error aler
       <div class="form-group">
         <label for="password">Password</label>
         <input type="password" id="password" v-model="authDetails.password" placeholder="Enter your password" />
-      </div>
-      
+      </div>      
       <div class="signup-link">
-        <p>Already have an account? Sign in <router-link to="/auth/login">here</router-link></p>
-      </div>
-      
+        <p>Already have an account? Sign in <router-link to="/login">here</router-link></p>
+      </div>      
       <button class="login-button" type="submit" @click="registerAccount">Register new account</button>
     </div>
   </div>
@@ -29,34 +26,30 @@ It sends a registration request to the server and displays success or error aler
 <script lang="ts">
 import axios, { AxiosError } from 'axios';
 import { ref } from 'vue';
+import type {AuthDetails} from "@/model/AuthDetails";
 
 const API_URL = 'http://localhost:3000';
-
-interface AuthDetails {
-  username: string;
-  password: string;
-  role: string;
-}
-
 export default {
   name: 'RegisterPage',
   setup() {
     const authDetails = ref<AuthDetails>({
       username: '',
       password: '',
-      role: '',
+          
     });
 
     const registerAccount = async () => {
       try {
-        const { username, password, role } = authDetails.value;
-
+        const { username, password} = authDetails.value;        
+        
         if (!username || !password) {
           throw new Error('Username and password are required');
         }
 
-        await axios.post(`${API_URL}/auth/register`, { username, password });
-
+        await axios.post(`${API_URL}/auth/register`, { username, password })
+        .then(response => {
+        console.log('Account successfully created ',response);
+        });
         // Registration successful
         alert('Account successfully created');
 
@@ -79,8 +72,6 @@ export default {
   },
 };
 </script>
-
-
 
   <style>
   .login-page {

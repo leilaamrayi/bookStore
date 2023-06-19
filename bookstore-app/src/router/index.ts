@@ -8,22 +8,20 @@ import AdminView from '@/views/AdminView-user.vue';
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
-    {
-      path: '/auth',
-      name: 'auth',      
-      children: [
+    
+     
         {
-          path: 'login',
+          path: '/login',
           name: 'login',
           component: LoginView
         },
         {
-          path: 'register',
+          path: '/register',
           name: 'register',
           component: RegisterView
-        }
-      ]
-    },
+        },
+      
+    
     {
       path: '/library',
       name: 'library',      

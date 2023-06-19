@@ -82,7 +82,7 @@ export default {
     };
 
     const goToSignIn = () => {
-      router.push('/auth/login'); // Navigate to SignInView
+      router.push('/login'); // Navigate to SignInView
     };
 
     return {
@@ -99,11 +99,9 @@ export default {
 
 
   <style>
-  .book-store {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
+.title-container{
+    background-color: rgb(204, 204, 204);
+  }
 
 .title-container {
   display: flex;

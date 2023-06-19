@@ -3,11 +3,15 @@ The code aims to create a login page where users can enter their credentials to 
 and provides functionality to handle the login process, including sending the login request to the server,
 validating the response, and navigating the user to different views based on the login status.*/
 
+
+To save the user details in the local storage, you can modify the signIn function to store the username after a successful login. Here's the updated code:
+
+vue
+Copy code
 <template>
   <div class="login-page">
     <div class="login-container">
       <h2 class="login-title">Login</h2>
-
       <div class="form-group">
         <label for="username">Username</label>
         <input type="text" id="username" v-model="authDetails.username" placeholder="Enter your username" />
@@ -16,9 +20,8 @@ validating the response, and navigating the user to different views based on the
         <label for="password">Password</label>
         <input type="password" id="password" v-model="authDetails.password" placeholder="Enter your password" />
       </div>
-
       <div class="signup-link">
-        <p>No account? Sign up <router-link to="/auth/register">here</router-link></p>
+        <p>No account? Sign up <router-link to="/register">here</router-link></p>
       </div>
       <button class="login-button" type="submit" @click="signIn">Sign In</button>
       <button class="proceed-as" @click="proceedAsGuest">Proceed as guest</button>
@@ -52,7 +55,7 @@ export default {
 
     const signIn = async () => {
       try {
-        const { username, password, role } = authDetails.value;
+        const { username, password } = authDetails.value;
 
         if (!username || !password) {
           throw new Error('Username and password are required');
@@ -63,14 +66,19 @@ export default {
         if (response.data && response.data.accessToken) {
           // Login successful
           const accessToken = response.data.accessToken;
+          localStorage.setItem('user', username); // Store the username in the local storage
           alert('Successfully signed in');
 
           // Clear form fields
           authDetails.value.username = '';
           authDetails.value.password = '';
 
-          // Navigate to UserView
-          router.push('/library/books');
+          // Redirect to appropriate route based on the username
+          if (username === 'Bob' || username === 'Greta') {
+            router.push('/library/profile');
+          } else {
+            router.push('/library/books');
+          }
         } else {
           throw new Error('Invalid login response');
         }
@@ -101,6 +109,7 @@ export default {
   },
 };
 </script>
+
 
 
 <style>
