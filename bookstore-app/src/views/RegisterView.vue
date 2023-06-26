@@ -2,7 +2,6 @@
 /*The code implements a registration page where users can enter their username and password to create a new account. 
 It sends a registration request to the server and displays success or error alerts accordingly.*/
 
-
 <template>
   <div class="login-page">
     <div class="login-container">

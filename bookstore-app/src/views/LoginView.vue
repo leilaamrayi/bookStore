@@ -3,11 +3,6 @@ The code aims to create a login page where users can enter their credentials to 
 and provides functionality to handle the login process, including sending the login request to the server,
 validating the response, and navigating the user to different views based on the login status.*/
 
-
-To save the user details in the local storage, you can modify the signIn function to store the username after a successful login. Here's the updated code:
-
-vue
-Copy code
 <template>
   <div class="login-page">
     <div class="login-container">
@@ -67,6 +62,7 @@ export default {
           // Login successful
           const accessToken = response.data.accessToken;
           localStorage.setItem('user', username); // Store the username in the local storage
+          localStorage.setItem('token',accessToken);
           alert('Successfully signed in');
 
           // Clear form fields
