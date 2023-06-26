@@ -8,16 +8,14 @@
         <tr>
           <th>Book Title</th>
           <th>Book Author</th>
-          <th>Book quantity</th>
-          <th>Version Number</th>
+          <th>Book quantity</th>          
         </tr>
       </thead>
       <tbody>
         <tr v-for="(book, index) in books" :key="index">
           <td>{{ book.title }}</td>
           <td>{{ book.author }}</td>
-          <td>{{ book.quantity }}</td>
-          <td>{{ book.version }}</td>
+          <td>{{ book.quantity }}</td>         
         </tr>
       </tbody>
     </table>
@@ -33,8 +31,7 @@ const API_URL = 'http://localhost:3000';
 interface Book {
   title: string;
   author: string;
-  quantity: number;
-  version: number;
+  quantity: number;  
 }
 
 export default {

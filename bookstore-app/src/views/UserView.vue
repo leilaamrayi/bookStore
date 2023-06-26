@@ -25,9 +25,9 @@ and sends order requests to the server. The user can also sign out from the page
         <td>
           <div class="order-container">
             <div class="order-controls">
-              <button class="order-button" @click="updateOrder(index, 'decrement')">-</button>
+              <button class="order-button" @click="updateOrder(book, 'decrement')">-</button>
               <span class="order-quantity">{{ book.orderQuantity }}</span>
-              <button class="order-button" @click="updateOrder(index, 'increment')">+</button>
+              <button class="order-button" @click="updateOrder(book, 'increment')">+</button>
             </div>
             <button class="order-book-button" @click="orderBook(book)">Order</button>
           </div>
@@ -41,25 +41,16 @@ and sends order requests to the server. The user can also sign out from the page
 import axios from 'axios';
 import type { AxiosResponse } from 'axios';
 import TitlePage from '../components/TitlePage.vue';
+import type { Book } from "@/model/Book"; // Import the interface
+import type {OrderData} from "@/model/orderData"; // Import the interface
 
-interface Book {
-  title: string;
-  author: string;
-  quantity: number;
-  orderQuantity: number;
-}
-
-interface OrderData {
-  title: string;
-  quantity: number;
-  username: string;
-}
 
 export default {
   data() {
     return {
       searchTerm: '',
       books: [],
+      searchedBooks: [],
     };
   },
   components: {
@@ -69,22 +60,22 @@ export default {
     filteredBooks(): Book[] {
       if (this.searchTerm.trim() === '') {
         return this.books;
+      } else {
+        const search = this.searchTerm.toLowerCase();
+        return this.books.filter((book: Book) => {
+          return (
+            book.title.toLowerCase().includes(search) ||
+            book.author.toLowerCase().includes(search)
+          );
+        });
       }
-      const search = this.searchTerm.toLowerCase();
-      return this.books.filter((book: Book) => {
-        return (
-          book.title.toLowerCase().includes(search) ||
-          book.author.toLowerCase().includes(search)
-        );
-      });
     },
   },
   methods: {
     getAvailabilityText(quantity: number): string {
       return quantity > 0 ? `${quantity} left` : 'Out of stock';
     },
-    updateOrder(index: number, action: string): void {
-      const book: Book = this.books[index];
+    updateOrder(book: Book, action: string): void {
       if (action === 'increment') {
         book.orderQuantity++;
       } else if (action === 'decrement' && book.orderQuantity > 0) {
@@ -92,91 +83,90 @@ export default {
       }
     },
     refreshToken(): Promise<void> {
-  // This method refreshes the token by making a refresh request to your authentication server.
-  // Adjust the implementation based on your authentication service.
-  const refreshToken = localStorage.getItem('refreshToken'); // Retrieve the refresh token from local storage
+      // This method refreshes the token by making a refresh request to the authentication server.
+      // Adjust the implementation based on the authentication service.
+      const refreshToken = localStorage.getItem('refreshToken'); // Retrieve the refresh token from local storage
 
-  if (!refreshToken) {
-    console.log('Refresh token not found');
-    return Promise.reject(new Error('Refresh token not found'));
-  }
-
-  // Make a request to the refresh token endpoint
-  return axios
-    .post('http://localhost:3000/auth/refresh', { refreshToken })
-    .then((response: AxiosResponse) => {
-      const { accessToken, refreshToken } = response.data;
-
-      // Update the access token and refresh token in local storage
-      localStorage.setItem('token', accessToken);
-      localStorage.setItem('refreshToken', refreshToken);
-
-      console.log('Token refreshed successfully');
-    })
-    .catch((error: Error) => {
-      console.log('Error refreshing token:', error);
-      // You can handle the error according to your needs (e.g., redirect to login page, show error message, etc.)
-      return Promise.reject(error);
-    });
-},
-orderBook(book: Book): void {
-  if (book.orderQuantity === 0) {
-    return; // No need to place an order if the quantity is 0
-  }
-
-  const username = localStorage.getItem('user'); // Retrieve the username from localStorage
-
-  if (!username) {
-    console.log('Username is missing');
-    return;
-  }
-
-  const orderData: OrderData = {
-    username: username,
-    title: book.title,
-    quantity: book.orderQuantity,
-  };
-
-  const API_URL = 'http://localhost:3000';
-
-  // Get the access token from local storage
-  const accessToken = localStorage.getItem('token');
-
-  if (!accessToken) {
-    console.log('Access token not found');
-    return;
-  }
-
-  axios
-    .post(`${API_URL}/library/user/books`, orderData, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    })
-    .then((response: AxiosResponse) => {
-      console.log('Order placed successfully:', response.data);
-      // Update books and perform any other necessary actions
-    })
-    .catch((error: Error) => {
-      console.log('Error placing order:', error);
-
-      // Check if the error is due to an expired token
-      if (axios.isAxiosError(error) && error.response?.status === 401) {
-        console.log('Token expired. Refreshing token...');
-
-        // Refresh the token and retry the order request
-        this.refreshToken()
-          .then(() => {
-            // Retry the order request with the new access token
-            return this.orderBook(book);
-          })
-          .catch((refreshError: Error) => {
-            console.log('Error refreshing token:', refreshError);
-          });
+      if (!refreshToken) {
+        console.log('Refresh token not found');
+        return Promise.reject(new Error('Refresh token not found'));
       }
-    });
-},
 
+      // Make a request to the refresh token endpoint
+      return axios
+        .post('http://localhost:3000/auth/refresh', { refreshToken })
+        .then((response: AxiosResponse) => {
+          const { accessToken, refreshToken } = response.data;
+
+          // Update the access token and refresh token in local storage
+          localStorage.setItem('token', accessToken);
+          localStorage.setItem('refreshToken', refreshToken);
+
+          console.log('Token refreshed successfully');
+        })
+        .catch((error: Error) => {
+          console.log('Error refreshing token:', error);
+          // You can handle the error according to your needs (e.g., redirect to login page, show error message, etc.)
+          return Promise.reject(error);
+        });
+    },
+    orderBook(book: Book): void {
+      if (book.orderQuantity === 0) {
+        return; // No need to place an order if the quantity is 0
+      }
+
+      const username = localStorage.getItem('user'); // Retrieve the username from localStorage
+
+      if (!username) {
+        console.log('Username is missing');
+        return;
+      }
+
+      const orderData: OrderData = {
+        username: username,
+        title: book.title,
+        quantity: book.orderQuantity,
+      };
+
+      const API_URL = 'http://localhost:3000';
+
+      // Get the access token from local storage
+      const accessToken = localStorage.getItem('token');
+
+      if (!accessToken) {
+        console.log('Access token not found');
+        return;
+      }
+
+      axios
+        .post(`${API_URL}/library/user/books`, orderData, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        })
+        .then((response: AxiosResponse) => {
+          console.log('Order placed successfully:', response.data);
+          // Update books and perform any other necessary actions
+        })
+        .catch((error: Error) => {
+          console.log('Error placing order:', error);
+
+          // Check if the error is due to an expired token
+          if (axios.isAxiosError(error) && error.response?.status === 401) {
+            console.log('Token expired. Refreshing token...');
+
+            // Refresh the token and retry the order request
+            this.refreshToken()
+              .then(() => {
+                // Retry the order request with the new access token
+                return this.orderBook(book);
+              })
+              .catch((refreshError: Error) => {
+                console.log('Error refreshing token:', refreshError);
+              });
+          }
+        });
+    },
     fetchBooks(): void {
       const API_URL = 'http://localhost:3000';
       axios
@@ -197,7 +187,7 @@ orderBook(book: Book): void {
       axios
         .get(`${API_URL}/library/user/books/search?q=${this.searchTerm}`)
         .then((response: AxiosResponse) => {
-          this.books = response.data.books.map((book: Book) => ({
+          this.searchedBooks = response.data.books.map((book: Book) => ({
             ...book,
             orderQuantity: 0,
           }));
