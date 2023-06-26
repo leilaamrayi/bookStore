@@ -1,13 +1,12 @@
-
 <template>
   <TitlePage></TitlePage>
   <div class="search-container">
     <div class="input-container">
-      <input type="text" v-model="searchTerm" placeholder="Search by username"  @keyup.enter="searchUser" />
+      <input type="text" v-model="searchTerm" placeholder="Search by username" @keyup.enter="searchUser" />
     </div>
     <div class="buttons-container">
-      <button @click="">Books</button>
-      <button class="users-button" @click="">Users</button>
+      <button @click="fetchBooks">Books</button>
+      <button class="users-button" @click="fetchUsers">Users</button>
     </div>
   </div>
   <table class="user-table">
@@ -28,7 +27,7 @@
           <div class="order-container">
             <div class="order-controls">
               <button class="action-button">Promote</button>
-              <button class="action-button">Delete</button>
+              <button class="action-button" @click="deleteUser(user)">Delete</button>
             </div>
           </div>
         </td>
@@ -36,7 +35,7 @@
     </tbody>
   </table>
 </template>
-  
+
 <script lang="ts">
 import axios from 'axios';
 import TitlePage from '../components/TitlePage.vue';
@@ -47,6 +46,7 @@ interface User {
   username: string;
   role: string;
   purchases: number;
+  profile?: any;
 }
 
 export default {
@@ -54,6 +54,7 @@ export default {
     return {
       searchTerm: '',
       users: [] as User[],
+      selectedUser: null as User | null,
     };
   },
   components: {
@@ -73,7 +74,7 @@ export default {
   methods: {
     async fetchUsers(): Promise<void> {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem('token');
         const response = await axios.get(`${API_URL}/admin/users`, {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -87,15 +88,18 @@ export default {
     },
     async fetchUserProfile(foundUser: User): Promise<void> {
       try {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem('token');
         const response = await axios.get(`${API_URL}/library/profile?username=${foundUser.username}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         });
 
-        // Handle the user profile data as needed
-        console.log(response.data);
+        // Update the foundUser's profile data
+        foundUser.profile = response.data;
+
+        // Set the selectedUser to the foundUser
+        this.selectedUser = foundUser;
       } catch (error) {
         console.log('Error fetching user profile:', error);
       }
@@ -108,7 +112,45 @@ export default {
 
       if (foundUser) {
         await this.fetchUserProfile(foundUser);
+      } else {
+        this.selectedUser = null; // Reset selectedUser if user is not found
       }
+    },
+    async deleteUser(foundUser: User): Promise<void> {
+  try {
+    const username = foundUser.username.trim();
+    if (username === '') {
+      console.log('Invalid username');
+      return;
+    }
+
+    const token = localStorage.getItem('token');
+    const response = await axios.delete(`${API_URL}/admin/users/${username}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+
+    if (response.status === 200) {
+      console.log('User deleted successfully');
+      // Remove the user from the users list
+      const userIndex = this.users.findIndex((user) => user.username === foundUser.username);
+      if (userIndex !== -1) {
+        this.users.splice(userIndex, 1);
+      }
+      this.selectedUser = null; // Reset selectedUser after deleting
+    } else if (response.status === 404) {
+      console.log('User not found');
+    } else {
+      console.log('Error deleting user');
+    }
+  } catch (error) {
+    console.log('Error deleting user:', error);
+  }
+},
+  
+    async fetchBooks(): Promise<void> {
+      // Implement the logic to fetch books here
     },
   },
   mounted() {
@@ -116,7 +158,7 @@ export default {
   },
 };
 </script>
-  
+
   
 <style>
 .search-container {

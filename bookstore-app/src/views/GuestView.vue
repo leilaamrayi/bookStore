@@ -26,14 +26,14 @@ Users can also sign in to access additional features.
           <tr>
             <th>Book Title</th>
             <th>Book Author</th>
-            <th>Book quantity</th>           
+            <th>Book quantity</th>
           </tr>
         </thead>
         <tbody>
           <tr v-for="(book, index) in searchResults" :key="index">
             <td>{{ book.title }}</td>
             <td>{{ book.author }}</td>
-            <td>{{ book.quantity }}</td>            
+            <td>{{ book.quantity }}</td>
           </tr>
         </tbody>
       </table>
@@ -46,15 +46,9 @@ import axios from 'axios';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import BookList from '@/components/BookList.vue';
+import type { Book } from "@/model/Book"; // Import the interface
 
 const API_URL = 'http://localhost:3000';
-
-interface Book {
-  title: string;
-  author: string;
-  quantity: number;
- 
-}
 
 export default {
   components: {
@@ -96,10 +90,10 @@ export default {
 </script>
 
 
-  <style>
-.title-container{
-    background-color: rgb(204, 204, 204);
-  }
+<style>
+.title-container {
+  background-color: rgb(204, 204, 204);
+}
 
 .title-container {
   display: flex;
@@ -126,24 +120,24 @@ export default {
 
 .search-container {
   margin-bottom: 20px;
-  
+
 }
-  .book-table {
-    width: 100%;
-    border-collapse: collapse;
-  }
-  
-  .book-table th,
-  .book-table td {
-    padding: 10px;
-    border: 1px solid #ddd;
-    text-align: center;
-    justify-content: space-between;
-  }
-  
-  .book-table th {
-    background-color: #f2f2f2;
-  }
-  
-  </style>
+
+.book-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.book-table th,
+.book-table td {
+  padding: 10px;
+  border: 1px solid #ddd;
+  text-align: center;
+  justify-content: space-between;
+}
+
+.book-table th {
+  background-color: #f2f2f2;
+}
+</style>
   

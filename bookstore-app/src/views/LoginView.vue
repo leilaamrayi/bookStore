@@ -28,19 +28,13 @@ validating the response, and navigating the user to different views based on the
 import axios, { AxiosError } from 'axios';
 import { ref } from 'vue';
 import { useRouter } from 'vue-router';
+import type { UserDetails } from "@/model/UserDetails";
 
 const API_URL = 'http://localhost:3000';
-
-interface AuthDetails {
-  username: string;
-  password: string;
-  role: string;
-}
-
 export default {
   name: 'LoginPage',
   setup() {
-    const authDetails = ref<AuthDetails>({
+    const authDetails = ref<UserDetails>({
       username: '',
       password: '',
       role: '',
