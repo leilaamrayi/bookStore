@@ -5,7 +5,7 @@
       <input type="text" v-model="searchTerm" placeholder="Search by username" @keyup.enter="searchUser" />
     </div>
     <div class="buttons-container">
-      <button @click="fetchBooks">Books</button>
+      <button>Books</button>
       <button class="users-button" @click="fetchUsers">Users</button>
     </div>
   </div>
@@ -26,7 +26,7 @@
         <td>
           <div class="order-container">
             <div class="order-controls">
-              <button class="action-button">Promote</button>
+              <button class="action-button" @click="promotUser(user)">Promote</button>
               <button class="action-button" @click="deleteUser(user)">Delete</button>
             </div>
           </div>
@@ -46,7 +46,6 @@ interface User {
   username: string;
   role: string;
   purchases: number;
-  profile?: any;
 }
 
 export default {
@@ -95,11 +94,8 @@ export default {
           },
         });
 
-        // Update the foundUser's profile data
-        foundUser.profile = response.data;
-
-        // Set the selectedUser to the foundUser
-        this.selectedUser = foundUser;
+        // Handle the user profile data as needed
+        console.log(response.data);
       } catch (error) {
         console.log('Error fetching user profile:', error);
       }
@@ -111,46 +107,85 @@ export default {
       });
 
       if (foundUser) {
+        this.selectedUser = foundUser;
         await this.fetchUserProfile(foundUser);
       } else {
         this.selectedUser = null; // Reset selectedUser if user is not found
       }
     },
     async deleteUser(foundUser: User): Promise<void> {
-  try {
-    const username = foundUser.username.trim();
-    if (username === '') {
-      console.log('Invalid username');
-      return;
-    }
+      try {
+        const username = foundUser.username.trim();
+        if (username === '') {
+          console.log('Invalid username');
+          return;
+        }
+        const token = localStorage.getItem('token');
+        const response = await axios.delete(`${API_URL}/admin/users`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          data: {
+            username: foundUser.username,
+          },
+        });
 
-    const token = localStorage.getItem('token');
-    const response = await axios.delete(`${API_URL}/admin/users/${username}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (response.status === 200) {
-      console.log('User deleted successfully');
-      // Remove the user from the users list
-      const userIndex = this.users.findIndex((user) => user.username === foundUser.username);
-      if (userIndex !== -1) {
-        this.users.splice(userIndex, 1);
+        if (response.status === 200) {
+          console.log('User deleted successfully');
+          // Remove the user from the users list
+          const userIndex = this.users.findIndex((user) => user.username === foundUser.username);
+          if (userIndex !== -1) {
+            this.users.splice(userIndex, 1);
+          }
+          this.selectedUser = null; // Reset selectedUser after deleting
+           // Navigate back to the previous page
+           this.searchTerm = ''; // Clear the search field
+        } else {
+          console.log('Error deleting user');
+        }
+      } catch (error) {
+        if (axios.isAxiosError(error) && error.response?.status === 404) {
+          console.log('User not found');
+        } else {
+          console.log('Error deleting user:', error);
+        }
       }
-      this.selectedUser = null; // Reset selectedUser after deleting
-    } else if (response.status === 404) {
-      console.log('User not found');
-    } else {
-      console.log('Error deleting user');
-    }
-  } catch (error) {
-    console.log('Error deleting user:', error);
-  }
-},
+    },
   
-    async fetchBooks(): Promise<void> {
-      // Implement the logic to fetch books here
+  async promotUser(foundUser: User): Promise<void> {
+      try {
+        const username = foundUser.username.trim();
+        if (username === '') {
+          console.log('Invalid username');
+          return;
+        }
+        const token = localStorage.getItem('token');
+        const response = await axios.put(`${API_URL}/admin/users`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          data: {
+            username: foundUser.username,
+          },
+        });
+
+        if (response.status === 200) {
+          console.log('User promoted successfully');
+          // promot the user from the users list
+          const userIndex = this.users.findIndex((user) => user.username === foundUser.username);
+          if (userIndex !== -1) {
+          this.users.splice(userIndex, 1);}          
+           this.searchTerm = ''; // Clear the search field
+        } else {
+          console.log('Error promoting user');
+        }
+      } catch (error) {
+        if (axios.isAxiosError(error) && error.response?.status === 403) {
+          console.log('User not found');
+        } else {
+          console.log('Error promoting user:', error);
+        }
+      }
     },
   },
   mounted() {
