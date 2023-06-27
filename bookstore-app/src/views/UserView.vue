@@ -111,14 +111,19 @@ export default {
         });
     },
     orderBook(book: Book): void {
-      if (book.orderQuantity === 0) {
-        return; // No need to place an order if the quantity is 0
-      }
+      if (book.orderQuantity === 0 )  {
+        alert('you must order at least one book');
+        return;
+      } // No need to place an order if the quantity is 0
+      if (book.quantity===0){
+        alert('Out of stock');
+      }    
 
       const username = localStorage.getItem('user'); // Retrieve the username from localStorage
 
       if (!username) {
         console.log('Username is missing');
+        
         return;
       }
 
@@ -135,6 +140,7 @@ export default {
 
       if (!accessToken) {
         console.log('Access token not found');
+        alert('Access token not found');
         return;
       }
 
@@ -146,6 +152,7 @@ export default {
         })
         .then((response: AxiosResponse) => {
           console.log('Order placed successfully:', response.data);
+          alert('Order placed successfully');
           // Update books and perform any other necessary actions
         })
         .catch((error: Error) => {
